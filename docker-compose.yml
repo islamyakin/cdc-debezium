@@ -1,0 +1,79 @@
+services:
+  kafka:
+    image: bitnami/kafka:3.7.1
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - TZ=Asia/Jakarta
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT_HOST://:19092,PLAINTEXT://0.0.0.0:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT_HOST://kafka:19092,PLAINTEXT://kafka:9092,
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+    volumes:
+      - "kafka_data:/bitnami"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: kafka-ui
+    ports:
+      - "8082:8080"
+    environment:
+      - TZ=Asia/Jakarta
+      - KAFKA_CLUSTERS_0_NAME=cdc
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:19092
+
+  debezium:
+    image: debezium/connect:3.0.0.Final
+    restart: always
+    container_name: debezium
+    hostname: debezium
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+    environment:
+      BOOTSTRAP_SERVERS: kafka:19092
+      GROUP_ID: 0
+      CONFIG_STORAGE_TOPIC: connect_configs
+      STATUS_STORAGE_TOPIC: connect_statuses
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      ENABLE_DEBEZIUM_SCRIPTING: 'true'
+
+  debezium-ui:
+    image: debezium/debezium-ui:2.5
+    restart: always
+    container_name: debezium-ui
+    hostname: debezium-ui
+    depends_on:
+      - debezium
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CONNECT_URIS: http://debezium:8083
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    container_name: postgres
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    command: ['postgres', '-c', 'wal_level=logical']
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d
+
+volumes:
+  kafka_data:
+    driver: local
