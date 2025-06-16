@@ -1,0 +1,10 @@
+CREATE DATABASE IF NOT EXISTS cdc;
+
+USE cdc;
+
+CREATE TABLE IF NOT EXISTS postgres_public_users (
+    id BIGINT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    address VARCHAR(255) NOT NULL
+);

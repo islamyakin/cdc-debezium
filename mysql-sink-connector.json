@@ -1,0 +1,17 @@
+{
+  "name": "mysql-sink-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.jdbc.JdbcSinkConnector",
+    "tasks.max": "1",
+    "topics": "postgres.public.users",
+    "connection.url": "jdbc:mysql://mysql:3306/cdc?user=cdc&password=cdc123",
+    "connection.username": "cdc",
+    "connection.password": "cdc123",
+    "auto.create": "true",
+    "auto.evolve": "true",
+    "insert.mode": "insert",
+    "pk.mode": "record_key",
+    "pk.fields": "id",
+    "fields.whitelist": "id,name,email,address"
+  }
+}
