@@ -1,4 +1,5 @@
 {
+  "name": "cdc-db-connector",
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "database.dbname": "cdc",
@@ -10,14 +11,22 @@
     "database.server.name": "postgres",
     "database.user": "cdc",
     "plugin.name": "pgoutput",
-    "table.include.list": "public.users",
+    "table.include.list": "public.borrowings",
     "tasks.max": "1",
     "topic.creation.default.cleanup.policy": "delete",
     "topic.creation.default.partitions": "1",
     "topic.creation.default.replication.factor": "1",
     "topic.creation.default.retention.ms": "604800000",
     "topic.creation.enable": "true",
-    "topic.prefix": "postgres"
-  },
-  "name": "cdc-db-connector"
+    "topic.prefix": "borrowings",
+
+    "transforms": "unwrap,dropFields",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "true",
+    "transforms.unwrap.delete.handling.mode": "drop",
+
+    "transforms.dropFields.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+    "transforms.dropFields.blacklist": "id,b_name"
+  }
 }
+
